@@ -1,0 +1,77 @@
+#!/bin/bash
+# Stop BBS
+#killall xfbbd
+ 
+# Stop FPAC
+#  /usr/sbin/fpac -stop
+ 
+# Stop beacon if it is running
+  if [ -e /var/run/beacon.pid ]; then
+     killall beacon
+     rm -f /var/run/beacon.pid
+     echo Beacon stopped
+  fi
+ 
+# Stop netromd if it is running
+  if [ -e /var/run/netromd.pid ]; then
+     killall netromd
+     rm -f /var/run/netromd.pid
+     echo Netrom Stopped
+  fi
+ 
+# Stop mheardd if it is running
+  if [ -e /var/run/mheard.pid ]; then
+    killall mheardd
+    rm -f /var/run/mheard.pid
+    echo Mheardd Stopped
+  fi
+ 
+# Stop ax25d if it is running
+  if [ -e /var/run/ax25d.pid ]; then
+    killall ax25d
+    rm -f /var/run/ax25d.pid
+    echo AX25d Stopped
+  fi
+ 
+# Stop ax25ipd if it is running
+#  if [ -e /var/run/ax25ipd.pid ]; then
+#    killall ax25ipd
+#    rm -f /var/run/ax25ipd.pid
+#    echo AX25ipd Stopped
+#  fi
+ 
+# Stop ax25rtd if it is running
+  if [ -e /var/run/ax25rtd.pid ]; then
+    killall ax25rtd
+    rm -f /var/run/ax25rtd.pid
+    echo "AX25rtd Stopped"
+   fi
+ 
+# Stop Monitor program
+  if [ -e /var/run/listen.pid ]; then
+    killall listen
+    rm -f /var/run/listen.pid
+    echo "Stop Monitor"
+  fi
+ 
+# Detach Ax/Sp Devices
+  echo "$(ls /proc/sys/net/ax25)" > /tmp/ax25-config.tmp
+# awk '/rose/{print $1}' /etc/ax25/rsports >> /tmp/ax25-config.tmp
+  read Select < /tmp/ax25-config.tmp
+  i=0
+  while [ "$Select" != "" ]
+  do
+   let i=i+1
+   awk ' NR == '$i' { print $1 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+   read Select < /tmp/ax25-config-tmp
+   if [ "$Select" != "" ]; then
+    ifconfig "$Select" down
+    echo " $Select Stopped"
+  fi
+  done
+ 
+# Stop Kissattach
+  killall -KILL kissattach > /dev/null
+ 
+  echo "Ax25 Stopped"
+# End of ax25-down

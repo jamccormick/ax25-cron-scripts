@@ -1,0 +1,91 @@
+#!/bin/bash                                                      
+# Provided by Charles S Schuman ( K4GBB ) 04/29/09
+# Edited to work with Debian Squeeze Basil Gunn (N7NIX) 02/24/2011
+### BEGIN INIT INFO                                               
+# Provides:         ax25                                                  
+# Required-Start:   $remote_fs $syslog
+# Required-Stop:    $remote_fs $syslog
+# Default-Start:    2 3 4 5                                            
+# Default-Stop:     0 1 6                                           
+# Short-Description: Ax.25 initialization                         
+# Description: This script provides the control for the ax.25 packet radio service.
+#              The fine tuneing is accomplished via /etc/ax25/ax25-up and /etc/ax25/ax25-down.
+#                                                                                             
+### END INIT INFO                                                                             
+ 
+DAEMON=/usr/local/etc/ax25/ax25-up
+DAEMONHALT=/usr/local/etc/ax25/ax25-down
+DESC=ax25
+NAME=ax25
+ 
+# /etc/init.d/ax25
+#
+# Kernel-Parameter "ax25=yes|no" ?
+# Set in kernel bootargs
+ 
+     StartAx25="yes"
+      if [ "`grep -e [Aa][Xx]25=[Nn][Oo] /proc/cmdline`" != "" ] ; then
+        StartAx25="no"
+      fi
+ 
+case "$1" in
+  start)
+	if [ "$StartAx25" = "no" ]; then
+	  echo -e "ax25: Aborting startup on user request (kernel boot parameter)."
+	  exit 1
+	fi
+ 
+	echo -n "Starting $DESC: "
+	$DAEMON
+ 
+#	start-stop-daemon --start --quiet -o --exec $DAEMON 2&>/dev/null 
+#	start-stop-daemon --start  -o --exec $DAEMON 2&1
+#	echo "$NAME."
+ 
+	;;
+ 
+    stop)
+	echo -n "Stopping $DESC: "
+	$DAEMONHALT
+#	echo "$NAME."
+	;;
+ 
+   restart|force-reload)
+	echo -n "Restarting $DESC: "
+	$DAEMONHALT
+	sleep 1
+	$DAEMON
+	;;
+ 
+  status)
+    if [ ! -d /proc/sys/net/ax25 ] ; then
+      echo "$NAME is down"
+    else
+      echo "$(ls /proc/sys/net/ax25)" > /tmp/ax25-config.tmp
+      read Select < /tmp/ax25-config.tmp
+      i=0
+      while [ "$Select" != "" ]
+      do
+      let i=i+1
+      awk ' NR == '$i' { print $1 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+      read Select < /tmp/ax25-config-tmp
+        if [ "$Select" != "" ]; then
+          /sbin/ifconfig "$Select"
+        fi
+      done
+        if [ -z "$(uname -r | grep kjd)" ] ;then
+          netstat --ax25
+        else
+          /sbin/ifconfig ipax0
+          cat /proc/net/ax25
+        fi
+    fi
+    ;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload|status}"
+	exit 1
+	;;
+esac
+ 
+exit 0

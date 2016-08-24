@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+PORTNAME="vhf2"
+SERIALPORT="/dev/ttyUSB0"
+CALLSIGN="N7NIX"
+ 
+# Set Sysctl values
+sysctl -w kernel.panic=30
+sysctl -w kernel.panic_on_oops=30
+ 
+ echo "Start Port ${PORTNAME} with device ${SERIALPORT}"
+# Attach KISS-device /dev/ttyS0 to Port 0
+/usr/local/sbin/kissattach -l  ${SERIALPORT} ${PORTNAME} 44.128.1.2 >/tmp/ax25-config.tmp
+awk '/device/ { print $7 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+read Device < /tmp/ax25-config-tmp
+ 
+# Install Parameters
+/usr/local/sbin/kissparms -p ${PORTNAME} -f no -r 32 -s 320 -t 320
+ 
+# Check for Device
+ echo "Checking for Device ${Device}"
+ if [ -d /proc/sys/net/ax25/$Device ]
+    then cd /proc/sys/net/ax25/$Device/
+       /etc/ax25/Lanparms
+       ifconfig $Device netmask 255.255.255.255
+       echo " Port ${PORTNAME} attached to $Device "
+    else echo "** Error setting $Device parms**"
+ fi
+ 
+# display active ax25 sockets
+  sleep 1
+  /bin/netstat --ax25
+ 
+# Start Mheard daemon
+ /usr/local/sbin/mheardd
+  echo $! > /var/run/mheard.pid
+  echo "mheardd Started"
+ 
+# AX25-up (End)
