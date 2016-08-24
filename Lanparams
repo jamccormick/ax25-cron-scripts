@@ -1,0 +1,19 @@
+#!/bin/bash
+# Config for AX.25 protocol stack
+# These files live in /proc/sys/net/ax25/$DEVICE
+# See file /etc/ax25/ax25-up
+#
+echo 10000   > t1_timeout		# (Frack) /1000 = ? Sec
+echo 1000    > t2_timeout 		# (RESPtime) /1000 = ? sec
+echo 300000  > t3_timeout 		# (Check) /6000 = ? Min
+echo 900000  > idle_timeout		# Idle Timer /6000 = ? min
+echo 2       > standard_window_size	# Outstanding Frames
+echo 6       > maximum_retry_count	# Max Retrys
+echo 255     > maximum_packet_length	# Paclen
+echo 0       > ax25_default_mode   
+echo 0       > ip_default_mode
+echo 0       > backoff_type
+echo 2       > connect_mode
+#echo 180000 > dama_slave_timeout
+echo 32      > extended_window_size
+echo 0       > protocol
